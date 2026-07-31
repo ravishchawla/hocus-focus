@@ -1,36 +1,73 @@
-# Hocus Focus for macOS
+# Hocus Focus
 
-A native macOS 14+ notch utility built with SwiftUI and AppKit. It lives at the top center of the active display, expands on hover or click, and stays available across Spaces without taking a Dock slot.
+**A quiet focus companion that lives in your MacBook notch.**
 
-## What works
+Hocus Focus turns the small space you already glance at all day into a calm home for your timer and music. Start a session, choose the sound that fits the moment, and get back to what matters—without opening another window or breaking your flow.
 
-- Collapsed and expanded Dynamic Island-style notch states
-- Wall-clock-accurate Pomodoro timer with pause, reset, skip, custom intervals, automatic breaks, notifications, and haptic completion cues
-- Dedicated coffee-break countdown
-- Six procedural focus soundscapes: Calm, Rain, Study, Jazz, Cozy, and Lo‑Fi
-- Apple Music playback controls, live/track metadata, shuffle, and volume control through Music's macOS scripting interface
-- An embedded YouTube player for eight current Lofi Girl live stations, with the main study stream selected by default, automatic playback, station switching, mute, volume, local selection persistence, and uninterrupted audio across notch/tab changes
-- Local preferences, simulated-notch mode, multi-display repositioning, optional launch at login, and a menu-bar fallback
+<p align="center">
+  <img src="docs/images/compact-notch.png" alt="Hocus Focus collapsed into the MacBook notch with a focus timer" width="820">
+</p>
 
-## Build and run
+## Focus without leaving your flow
 
-The project uses Swift Package Manager, so the macOS Command Line Tools are enough; full Xcode is optional.
+Your current session is always one glance away. Hocus Focus stays beautifully compact when you are working, then expands when you need controls. Start, pause, reset, skip ahead, or take a coffee break without hunting through menus.
+
+<p align="center">
+  <img src="docs/images/focus-timer.png" alt="Hocus Focus timer with focus controls and a calm soundscape" width="100%">
+</p>
+
+Set a rhythm that works for you: focused work, short breaks, and dedicated coffee breaks. The timer keeps honest time even when your Mac sleeps, and a gentle notification brings you back when a session ends.
+
+## Make focus sound good
+
+Some days call for rain. Others need jazz, soft ambience, or a familiar playlist. Hocus Focus keeps all of it in the same small space as your timer.
+
+- Choose from six built-in focus soundscapes: Calm, Rain, Study, Jazz, Cozy, and Lo-Fi.
+- Tune into eight Lofi Girl live stations, from classic study beats to synthwave, piano, jazz, and rainy-day moods.
+- Control Apple Music without pulling yourself into the full Music app.
+- Keep listening while the notch collapses or you switch back to the timer.
+
+### A Lofi Girl station for every kind of session
+
+<p align="center">
+  <img src="docs/images/lofi-stations.png" alt="The Lofi Girl station picker in Hocus Focus" width="100%">
+</p>
+
+Pick the energy you need and let it run. The main Lofi Girl study stream is ready by default, while the station picker makes it easy to move from deep-focus beats to a softer evening atmosphere.
+
+<p align="center">
+  <img src="docs/images/lofi-player.png" alt="A Lofi Girl live stream playing inside Hocus Focus" width="100%">
+</p>
+
+### Your Apple Music, close at hand
+
+<p align="center">
+  <img src="docs/images/apple-music.png" alt="Apple Music playback controls inside Hocus Focus" width="100%">
+</p>
+
+Play, pause, skip, shuffle, and adjust volume directly from the notch. You can see what is playing and stay with your work instead of disappearing into your library.
+
+## Designed to disappear at the right moment
+
+Hocus Focus is present when it helps and nearly invisible when it does not.
+
+- **Glanceable by default.** See the current mode and remaining time without opening anything.
+- **Expandable on demand.** Hover or click when you want the full timer or music controls.
+- **Easy to keep around.** Pin the expanded view while planning a session, then collapse it when it is time to work.
+- **No Dock clutter.** Hocus Focus lives in the notch, with a small menu-bar fallback when you need it.
+- **Personal by design.** Your preferences stay on your Mac, and there is no Hocus Focus account to create.
+
+## Built for the way focus actually works
+
+Focus is not one perfect 25-minute block. It is starting when you feel resistance, protecting momentum once it arrives, and taking a real break before your attention runs dry. Hocus Focus keeps those small decisions close enough to be effortless—so the tool fades away and the work gets your attention.
+
+## Run Hocus Focus on your Mac
+
+Hocus Focus is a personal macOS app for Apple silicon Macs running macOS 14 or later.
 
 ```bash
-chmod +x scripts/build-app.sh
 ./scripts/build-app.sh
 open "dist/Hocus Focus.app"
 ```
 
-On first use, macOS may ask for Notifications permission and permission to control Apple Music. That permission is only needed for the Apple Music source. Lofi Girl playback uses YouTube's standard embedded player and requires an internet connection. The app stores preferences locally in `UserDefaults` and does not require an account.
-
-## Keyboard and menu-bar access
-
-The menu-bar timer icon can show the notch, start or pause the timer, begin a coffee break, open settings, or quit the app. The UI itself is designed to be controlled without moving focus away from the current app.
-
-## Notes
-
-- The app intentionally targets Apple Silicon and macOS 14 or later, matching the reference product's current requirements.
-- Apple Music must be installed for its controls to work. If it is not running, the Music tab offers to open it.
-- The standard YouTube player is shown in the expanded Music tab. Its player instance stays alive when the notch collapses or the Timer tab is selected, so the stream keeps playing until it is paused or the source changes.
-- Procedural focus audio is generated locally, so it works offline and ships without third-party audio files.
+The first time you use certain features, macOS may ask for permission to send timer notifications or control Apple Music. Lofi Girl playback uses YouTube's embedded player and needs an internet connection; the built-in focus soundscapes work offline.
