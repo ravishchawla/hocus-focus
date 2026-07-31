@@ -59,4 +59,14 @@ struct LofiYouTubePlayerTests {
         #expect(player.webView == nil)
         #expect(player.playbackState == .idle)
     }
+
+    @Test @MainActor
+    func playerCommandsEndWithAWebKitBridgeableValue() {
+        let command = "window.notchflowPlayer.play();"
+        let script = LofiYouTubePlayer.bridgeableCommand(command)
+
+        #expect(script.contains(command))
+        #expect(script.contains("return true;"))
+        #expect(script.trimmingCharacters(in: .whitespacesAndNewlines).hasSuffix("})();"))
+    }
 }

@@ -263,6 +263,20 @@ extension LofiYouTubePlayer {
             break
         }
     }
+
+    /// WebKit tries to bridge the value of the final JavaScript expression
+    /// back to Swift. YouTube player methods may return `undefined` or host
+    /// objects, neither of which is a supported `evaluateJavaScript` result.
+    /// Explicitly returning a Boolean keeps successful commands bridgeable;
+    /// JavaScript exceptions still escape the wrapper and reach the callback.
+    static func bridgeableCommand(_ javaScript: String) -> String {
+        """
+        (() => {
+          \(javaScript)
+          return true;
+        })();
+        """
+    }
 }
 
 private extension LofiYouTubePlayer {
@@ -274,7 +288,7 @@ private extension LofiYouTubePlayer {
 
     func evaluate(_ javaScript: String, reportErrors: Bool = true) {
         guard let webView else { return }
-        webView.evaluateJavaScript(javaScript) { [weak self] _, error in
+        webView.evaluateJavaScript(Self.bridgeableCommand(javaScript)) { [weak self] _, error in
             guard reportErrors, let error else { return }
             Task { @MainActor [weak self] in
                 self?.lastError = "The YouTube player could not be controlled: \(error.localizedDescription)"

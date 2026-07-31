@@ -27,7 +27,6 @@ enum NotchTab: String, CaseIterable, Identifiable {
 
 enum NotchSurface: Equatable {
     case main
-    case presets
     case settings
 }
 
@@ -36,7 +35,6 @@ final class AppModel: ObservableObject {
     static let shared = AppModel()
 
     let timer: FocusTimer
-    let focusAudio: FocusAudioEngine
     let music: MusicBridge
     let lofiYouTube: LofiYouTubePlayer
 
@@ -86,8 +84,6 @@ final class AppModel: ObservableObject {
         static let breakSeconds = "timer.breakSeconds"
         static let coffeeSeconds = "timer.coffeeSeconds"
         static let autoStart = "timer.autoStartBreaks"
-        static let preset = "audio.activePreset"
-        static let volume = "audio.volume"
         static let musicSource = "music.source"
         static let simulateNotch = "panel.simulateNotch"
         static let collapseDelay = "panel.collapseDelay"
@@ -113,14 +109,6 @@ final class AppModel: ObservableObject {
         if let savedTimerState = defaults.data(forKey: Keys.timerState) {
             timer.restoreState(from: savedTimerState)
         }
-
-        focusAudio = FocusAudioEngine()
-        if let rawPreset = defaults.string(forKey: Keys.preset),
-           let preset = FocusPreset(rawValue: rawPreset) {
-            focusAudio.select(preset)
-        }
-        let savedVolume = defaults.object(forKey: Keys.volume) as? NSNumber
-        focusAudio.volume = savedVolume?.floatValue ?? 0.38
 
         music = MusicBridge()
         lofiYouTube = LofiYouTubePlayer(defaults: defaults)
@@ -150,16 +138,6 @@ final class AppModel: ObservableObject {
         timer.$autoStartBreaks
             .dropFirst()
             .sink { [weak self] value in self?.defaults.set(value, forKey: Keys.autoStart) }
-            .store(in: &cancellables)
-
-        focusAudio.$activePreset
-            .dropFirst()
-            .sink { [weak self] value in self?.defaults.set(value.rawValue, forKey: Keys.preset) }
-            .store(in: &cancellables)
-
-        focusAudio.$volume
-            .dropFirst()
-            .sink { [weak self] value in self?.defaults.set(value, forKey: Keys.volume) }
             .store(in: &cancellables)
 
     }

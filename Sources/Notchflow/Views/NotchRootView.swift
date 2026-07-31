@@ -113,8 +113,6 @@ private struct ExpandedNotchView: View {
 
             Group {
                 switch model.surface {
-                case .presets:
-                    FocusPresetsView(model: model)
                 case .settings:
                     SettingsPanelView(model: model)
                 case .main:

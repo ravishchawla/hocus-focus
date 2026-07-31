@@ -3,12 +3,10 @@ import SwiftUI
 struct TimerControlsView: View {
     @ObservedObject var model: AppModel
     @ObservedObject private var timer: FocusTimer
-    @ObservedObject private var audio: FocusAudioEngine
 
     init(model: AppModel) {
         self.model = model
         timer = model.timer
-        audio = model.focusAudio
     }
 
     var body: some View {
@@ -56,29 +54,6 @@ struct TimerControlsView: View {
                     .frame(height: 3)
                 }
                 .frame(maxWidth: .infinity, alignment: .leading)
-
-                Button {
-                    model.surface = .presets
-                } label: {
-                    HStack(spacing: 8) {
-                        PresetArtwork(preset: audio.activePreset, size: 44)
-                        VStack(alignment: .leading, spacing: 2) {
-                            Text(audio.activePreset.displayName)
-                                .font(.system(size: 11, weight: .semibold))
-                                .foregroundStyle(.white)
-                            HStack(spacing: 4) {
-                                EqualizerView(active: audio.isPlaying, compact: true)
-                                Text(audio.isPlaying ? "Playing" : "Focus sound")
-                                    .font(.system(size: 9, weight: .medium))
-                                    .foregroundStyle(NotchflowTheme.secondary)
-                            }
-                        }
-                    }
-                    .padding(.trailing, 9)
-                    .background(NotchflowTheme.raised, in: RoundedRectangle(cornerRadius: 13, style: .continuous))
-                }
-                .buttonStyle(.plain)
-                .accessibilityLabel("Choose focus sound")
 
                 NotchIconButton(
                     systemName: "cup.and.saucer.fill",
@@ -148,60 +123,6 @@ private struct CoffeeBreakView: View {
                 accessibilityLabel: timer.isRunning ? "Pause coffee break" : "Start coffee break",
                 prominent: true,
                 action: timer.toggle
-            )
-        }
-        .padding(.horizontal, 10)
-    }
-}
-
-struct FocusPresetsView: View {
-    @ObservedObject var model: AppModel
-    @ObservedObject private var audio: FocusAudioEngine
-
-    init(model: AppModel) {
-        self.model = model
-        audio = model.focusAudio
-    }
-
-    var body: some View {
-        HStack(spacing: 12) {
-            NotchIconButton(
-                systemName: "chevron.left",
-                accessibilityLabel: "Back to timer",
-                action: { model.surface = .main }
-            )
-
-            ForEach(FocusPreset.allCases) { preset in
-                Button {
-                    audio.select(preset)
-                    if !audio.isPlaying { audio.play() }
-                } label: {
-                    VStack(spacing: 6) {
-                        ZStack(alignment: .bottomTrailing) {
-                            PresetArtwork(preset: preset, size: 66)
-                            if audio.activePreset == preset && audio.isPlaying {
-                                EqualizerView(active: true, tint: .white, compact: true)
-                                    .padding(5)
-                                    .background(.black.opacity(0.62), in: Circle())
-                                    .offset(x: 5, y: 5)
-                            }
-                        }
-                        Text(preset.displayName)
-                            .font(.system(size: 10, weight: .semibold))
-                            .foregroundStyle(.white.opacity(audio.activePreset == preset ? 1 : 0.64))
-                    }
-                }
-                .buttonStyle(.plain)
-                .help(preset.subtitle)
-            }
-
-            Spacer(minLength: 0)
-
-            NotchIconButton(
-                systemName: audio.isPlaying ? "pause.fill" : "play.fill",
-                accessibilityLabel: audio.isPlaying ? "Pause focus sound" : "Play focus sound",
-                prominent: true,
-                action: audio.toggle
             )
         }
         .padding(.horizontal, 10)

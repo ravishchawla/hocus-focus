@@ -38,6 +38,7 @@ struct SettingsPanelView: View {
                 durationRow("Coffee", value: $coffeeMinutes, range: 1...30)
             }
             .padding(12)
+            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
             .background(NotchflowTheme.raised, in: RoundedRectangle(cornerRadius: 14, style: .continuous))
 
             VStack(alignment: .leading, spacing: 8) {
@@ -52,36 +53,7 @@ struct SettingsPanelView: View {
             .toggleStyle(.switch)
             .controlSize(.small)
             .padding(12)
-            .frame(maxHeight: .infinity, alignment: .top)
-            .background(NotchflowTheme.raised, in: RoundedRectangle(cornerRadius: 14, style: .continuous))
-
-            VStack(alignment: .leading, spacing: 8) {
-                Label("Focus audio", systemImage: "waveform")
-                    .font(.system(size: 11, weight: .bold))
-                HStack {
-                    PresetArtwork(preset: model.focusAudio.activePreset, size: 40)
-                    VStack(alignment: .leading, spacing: 2) {
-                        Text(model.focusAudio.activePreset.displayName)
-                            .font(.system(size: 10, weight: .semibold))
-                        Text(model.focusAudio.activePreset.subtitle)
-                            .font(.system(size: 8))
-                            .foregroundStyle(NotchflowTheme.secondary)
-                    }
-                }
-                Slider(
-                    value: Binding(
-                        get: { Double(model.focusAudio.volume) },
-                        set: { model.focusAudio.volume = Float($0) }
-                    ),
-                    in: 0...1
-                )
-                .tint(NotchflowTheme.orange)
-                Button("Choose a sound") { model.surface = .presets }
-                    .buttonStyle(.link)
-                    .font(.system(size: 9, weight: .semibold))
-            }
-            .padding(12)
-            .frame(maxHeight: .infinity, alignment: .top)
+            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
             .background(NotchflowTheme.raised, in: RoundedRectangle(cornerRadius: 14, style: .continuous))
         }
         .padding(.horizontal, 8)

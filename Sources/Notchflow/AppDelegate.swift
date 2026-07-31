@@ -22,7 +22,6 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
     func applicationWillTerminate(_ notification: Notification) {
         model.persistTimerState()
-        model.focusAudio.stop()
         model.music.stopPolling()
         model.lofiYouTube.shutdown()
         NSWorkspace.shared.notificationCenter.removeObserver(self)

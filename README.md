@@ -12,17 +12,12 @@ Hocus Focus turns the small space you already glance at all day into a calm home
 
 Your current session is always one glance away. Hocus Focus stays beautifully compact when you are working, then expands when you need controls. Start, pause, reset, skip ahead, or take a coffee break without hunting through menus.
 
-<p align="center">
-  <img src="docs/images/focus-timer.png" alt="Hocus Focus timer with focus controls and a calm soundscape" width="100%">
-</p>
-
 Set a rhythm that works for you: focused work, short breaks, and dedicated coffee breaks. The timer keeps honest time even when your Mac sleeps, and a gentle notification brings you back when a session ends.
 
-## Make focus sound good
+## Give your focus a soundtrack
 
-Some days call for rain. Others need jazz, soft ambience, or a familiar playlist. Hocus Focus keeps all of it in the same small space as your timer.
+Some days call for Lofi Girl. Others need a familiar playlist. Hocus Focus keeps both in the same small space as your timer.
 
-- Choose from six built-in focus soundscapes: Calm, Rain, Study, Jazz, Cozy, and Lo-Fi.
 - Tune into eight Lofi Girl live stations, from classic study beats to synthwave, piano, jazz, and rainy-day moods.
 - Control Apple Music without pulling yourself into the full Music app.
 - Keep listening while the notch collapses or you switch back to the timer.
@@ -34,10 +29,6 @@ Some days call for rain. Others need jazz, soft ambience, or a familiar playlist
 </p>
 
 Pick the energy you need and let it run. The main Lofi Girl study stream is ready by default, while the station picker makes it easy to move from deep-focus beats to a softer evening atmosphere.
-
-<p align="center">
-  <img src="docs/images/lofi-player.png" alt="A Lofi Girl live stream playing inside Hocus Focus" width="100%">
-</p>
 
 ### Your Apple Music, close at hand
 
@@ -70,4 +61,4 @@ Hocus Focus is a personal macOS app for Apple silicon Macs running macOS 14 or l
 open "dist/Hocus Focus.app"
 ```
 
-The first time you use certain features, macOS may ask for permission to send timer notifications or control Apple Music. Lofi Girl playback uses YouTube's embedded player and needs an internet connection; the built-in focus soundscapes work offline.
+The first time you use certain features, macOS may ask for permission to send timer notifications or control Apple Music. Lofi Girl playback uses YouTube's embedded player and needs an internet connection.
