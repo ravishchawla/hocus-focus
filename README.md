@@ -5,7 +5,7 @@
 Hocus Focus turns the small space you already glance at all day into a calm home for your timer and music. Start a session, choose the sound that fits the moment, and get back to what matters—without opening another window or breaking your flow.
 
 <p align="center">
-  <img src="docs/images/compact-notch.png" alt="Hocus Focus collapsed into the MacBook notch with a focus timer" width="820">
+  <img src="docs/images/compact-notch-menubar.png" alt="Hocus Focus collapsed into the MacBook notch alongside the macOS menu bar" width="100%">
 </p>
 
 ## Focus without leaving your flow
