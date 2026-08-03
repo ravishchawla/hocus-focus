@@ -61,6 +61,24 @@ struct LofiYouTubePlayerTests {
     }
 
     @Test @MainActor
+    func reopeningPausedPlayerDoesNotAutoplayAgain() {
+        let player = LofiYouTubePlayer()
+        let webView = WKWebView()
+
+        player.attach(to: webView)
+        #expect(player.autoplayOnceIfNeeded())
+        player.receive(message: ["event": "state", "value": NSNumber(value: 1)])
+        player.pause()
+        #expect(player.playbackState == .paused)
+
+        player.detach(from: webView)
+        player.attach(to: webView)
+
+        #expect(!player.autoplayOnceIfNeeded())
+        #expect(player.playbackState == .paused)
+    }
+
+    @Test @MainActor
     func playerCommandsEndWithAWebKitBridgeableValue() {
         let command = "window.notchflowPlayer.play();"
         let script = LofiYouTubePlayer.bridgeableCommand(command)

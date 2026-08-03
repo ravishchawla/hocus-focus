@@ -119,10 +119,10 @@ struct MusicControlsView: View {
         HStack(alignment: .top, spacing: 16) {
             LofiYouTubePlayerView(player: lofi)
                 .onAppear {
-                    // Let the notch finish expanding before autoplay so the
-                    // YouTube player is fully visible when playback begins.
+                    // Autoplay only on the first presentation. Later notch
+                    // expansions preserve the user's play/pause choice.
                     DispatchQueue.main.asyncAfter(deadline: .now() + 0.4) {
-                        if lofi.isPlayerVisible { lofi.play() }
+                        lofi.autoplayOnceIfNeeded()
                     }
                 }
 

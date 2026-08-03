@@ -38,6 +38,7 @@ final class LofiYouTubePlayer: ObservableObject {
     }
 
     private let defaults: UserDefaults
+    private var hasAttemptedInitialAutoplay = false
     private(set) var webView: WKWebView?
 
     init(
@@ -70,6 +71,17 @@ final class LofiYouTubePlayer: ObservableObject {
         isPlaying ? pause() : play()
     }
 
+    /// Starts playback automatically once during this player's lifetime.
+    /// Subsequent view appearances preserve the user's current play/pause state.
+    @discardableResult
+    func autoplayOnceIfNeeded() -> Bool {
+        guard !hasAttemptedInitialAutoplay, isPlayerVisible, webView != nil else {
+            return false
+        }
+        play()
+        return true
+    }
+
     /// A new playback session starts from the expanded player. Once started,
     /// the retained web view can continue through notch and tab changes.
     func play() {
@@ -77,6 +89,7 @@ final class LofiYouTubePlayer: ObservableObject {
             lastError = "Open the Lofi Girl player before starting playback."
             return
         }
+        hasAttemptedInitialAutoplay = true
         lastError = nil
         evaluate("window.notchflowPlayer.play();")
     }
@@ -99,6 +112,7 @@ final class LofiYouTubePlayer: ObservableObject {
             return
         }
 
+        if autoplay { hasAttemptedInitialAutoplay = true }
         playbackState = .loading
         let videoID = Self.javaScriptString(station.videoID)
         evaluate("window.notchflowPlayer.load(\(videoID), \(autoplay));")
@@ -135,6 +149,7 @@ final class LofiYouTubePlayer: ObservableObject {
         webView = nil
         isPlayerVisible = false
         playbackState = .idle
+        hasAttemptedInitialAutoplay = false
     }
 }
 
