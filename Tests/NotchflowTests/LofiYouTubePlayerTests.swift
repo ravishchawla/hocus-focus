@@ -79,6 +79,39 @@ struct LofiYouTubePlayerTests {
     }
 
     @Test @MainActor
+    func retainedPausedPlayerCanResumeWhileHidden() {
+        let player = LofiYouTubePlayer()
+        let webView = WKWebView()
+
+        #expect(!player.toggleExistingPlayback())
+
+        player.attach(to: webView)
+        player.receive(message: ["event": "state", "value": NSNumber(value: 1)])
+        player.pause()
+        player.detach(from: webView)
+
+        #expect(player.hasControllablePlaybackSession)
+        #expect(player.toggleExistingPlayback())
+        #expect(player.playbackState == .buffering)
+        #expect(player.webView === webView)
+        #expect(!player.isPlayerVisible)
+    }
+
+    @Test @MainActor
+    func existingBufferingSessionCanBePaused() {
+        let player = LofiYouTubePlayer()
+        let webView = WKWebView()
+
+        player.attach(to: webView)
+        player.receive(message: ["event": "state", "value": NSNumber(value: 3)])
+
+        #expect(player.hasControllablePlaybackSession)
+        #expect(player.isActivelyPlaying)
+        #expect(player.toggleExistingPlayback())
+        #expect(player.playbackState == .paused)
+    }
+
+    @Test @MainActor
     func playerCommandsEndWithAWebKitBridgeableValue() {
         let command = "window.notchflowPlayer.play();"
         let script = LofiYouTubePlayer.bridgeableCommand(command)

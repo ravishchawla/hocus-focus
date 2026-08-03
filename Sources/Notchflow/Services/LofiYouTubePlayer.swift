@@ -13,6 +13,19 @@ enum LofiPlaybackState: Equatable {
     case failed
 
     var isPlaying: Bool { self == .playing }
+
+    var isActivelyPlaying: Bool {
+        self == .playing || self == .buffering
+    }
+
+    var hasControllableSession: Bool {
+        switch self {
+        case .playing, .paused, .buffering:
+            true
+        case .idle, .loading, .ready, .ended, .failed:
+            false
+        }
+    }
 }
 
 /// Observable control surface for the visible YouTube player.
@@ -67,8 +80,32 @@ final class LofiYouTubePlayer: ObservableObject {
 
     var isPlaying: Bool { playbackState.isPlaying }
 
+    /// True only after a station has reached an active or paused playback
+    /// state and its retained web player is still available.
+    var hasControllablePlaybackSession: Bool {
+        webView != nil && playbackState.hasControllableSession
+    }
+
+    var isActivelyPlaying: Bool { playbackState.isActivelyPlaying }
+
     func togglePlayPause() {
-        isPlaying ? pause() : play()
+        isActivelyPlaying ? pause() : play()
+    }
+
+    /// Controls a station that has already started, even while its retained
+    /// web view is detached from the visible notch. This deliberately cannot
+    /// create a new session, which keeps first-time playback user initiated on
+    /// the Music page and prevents notch hover from triggering autoplay.
+    @discardableResult
+    func toggleExistingPlayback() -> Bool {
+        guard hasControllablePlaybackSession else { return false }
+
+        if isActivelyPlaying {
+            pause()
+        } else {
+            resumeExistingPlayback()
+        }
+        return true
     }
 
     /// Starts playback automatically once during this player's lifetime.
@@ -295,18 +332,37 @@ extension LofiYouTubePlayer {
 }
 
 private extension LofiYouTubePlayer {
+    func resumeExistingPlayback() {
+        guard webView != nil else { return }
+        hasAttemptedInitialAutoplay = true
+        lastError = nil
+        playbackState = .buffering
+        evaluate(
+            "window.notchflowPlayer.play();",
+            playbackStateOnError: .paused
+        )
+    }
+
     func selectStation(offset: Int, autoplay: Bool) {
         guard let currentIndex = stations.firstIndex(of: selectedStation), !stations.isEmpty else { return }
         let nextIndex = (currentIndex + offset + stations.count) % stations.count
         select(stations[nextIndex], autoplay: autoplay)
     }
 
-    func evaluate(_ javaScript: String, reportErrors: Bool = true) {
+    func evaluate(
+        _ javaScript: String,
+        reportErrors: Bool = true,
+        playbackStateOnError: LofiPlaybackState? = nil
+    ) {
         guard let webView else { return }
         webView.evaluateJavaScript(Self.bridgeableCommand(javaScript)) { [weak self] _, error in
             guard reportErrors, let error else { return }
             Task { @MainActor [weak self] in
-                self?.lastError = "The YouTube player could not be controlled: \(error.localizedDescription)"
+                guard let self else { return }
+                self.lastError = "The YouTube player could not be controlled: \(error.localizedDescription)"
+                if let playbackStateOnError, self.playbackState == .buffering {
+                    self.playbackState = playbackStateOnError
+                }
             }
         }
     }

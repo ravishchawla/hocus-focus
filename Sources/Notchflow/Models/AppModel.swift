@@ -197,8 +197,9 @@ final class AppModel: ObservableObject {
     }
 
     func showSettings() {
-        expand(pin: true)
         surface = .settings
+        expand(pin: true)
+        syncMusicPollingWithVisibleSurface()
     }
 
     func saveTimerDurationsFromCurrentValues() {
@@ -217,15 +218,46 @@ final class AppModel: ObservableObject {
     }
 
     func musicSurfaceDidAppear() {
-        if musicSource == .lofiGirl {
-            music.stopPolling()
-        } else {
-            music.startPolling()
-        }
+        syncMusicPollingWithVisibleSurface()
     }
 
     func musicSurfaceDidDisappear() {
-        music.stopPolling()
+        syncMusicPollingWithVisibleSurface()
+    }
+
+    func syncMusicPollingWithVisibleSurface() {
+        let appleMusicPageIsVisible = selectedTab == .music && musicSource == .appleMusic
+        let appleMusicTimerControlIsVisible = selectedTab == .timer && !timerMediaUsesLofi
+        let shouldPoll = isExpanded
+            && surface == .main
+            && (appleMusicPageIsVisible || appleMusicTimerControlIsVisible)
+
+        if shouldPoll {
+            music.startPolling()
+        } else {
+            music.stopPolling()
+        }
+    }
+
+    /// The Timer transport follows a retained Lofi session only when Lofi Girl
+    /// is still the selected source. Otherwise it controls Apple Music.
+    var timerMediaUsesLofi: Bool {
+        musicSource == .lofiGirl && lofiYouTube.hasControllablePlaybackSession
+    }
+
+    var timerMediaIsPlaying: Bool {
+        timerMediaUsesLofi ? lofiYouTube.isActivelyPlaying : music.isPlaying
+    }
+
+    var timerMediaSourceName: String {
+        timerMediaUsesLofi ? "Lofi Girl" : "Apple Music"
+    }
+
+    func toggleTimerMediaPlayback() {
+        if timerMediaUsesLofi, lofiYouTube.toggleExistingPlayback() {
+            return
+        }
+        music.togglePlayPause()
     }
 
     func persistTimerState() {
@@ -270,12 +302,8 @@ final class AppModel: ObservableObject {
     private func applyMusicSource() {
         if musicSource == .appleMusic {
             lofiYouTube.pause()
-            if isExpanded && selectedTab == .music && surface == .main {
-                music.startPolling()
-            }
-        } else {
-            music.stopPolling()
         }
+        syncMusicPollingWithVisibleSurface()
     }
 
     private func withAnimationState(_ changes: () -> Void) {

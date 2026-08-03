@@ -3,15 +3,23 @@ import SwiftUI
 struct TimerControlsView: View {
     @ObservedObject var model: AppModel
     @ObservedObject private var timer: FocusTimer
+    @ObservedObject private var music: MusicBridge
+    @ObservedObject private var lofi: LofiYouTubePlayer
 
     init(model: AppModel) {
         self.model = model
         timer = model.timer
+        music = model.music
+        lofi = model.lofiYouTube
     }
 
     var body: some View {
         if timer.mode == .coffee {
             CoffeeBreakView(model: model)
+                .onAppear(perform: model.syncMusicPollingWithVisibleSurface)
+                .onChange(of: model.timerMediaUsesLofi) { _, _ in
+                    model.syncMusicPollingWithVisibleSurface()
+                }
         } else {
             HStack(spacing: 16) {
                 NotchIconButton(
@@ -66,9 +74,59 @@ struct TimerControlsView: View {
                     accessibilityLabel: "Skip current interval",
                     action: timer.skip
                 )
+
+                TimerMediaButton(model: model)
             }
             .padding(.horizontal, 10)
+            .onAppear(perform: model.syncMusicPollingWithVisibleSurface)
+            .onChange(of: model.timerMediaUsesLofi) { _, _ in
+                model.syncMusicPollingWithVisibleSurface()
+            }
         }
+    }
+}
+
+private struct TimerMediaButton: View {
+    @ObservedObject var model: AppModel
+    @ObservedObject private var music: MusicBridge
+    @ObservedObject private var lofi: LofiYouTubePlayer
+
+    init(model: AppModel) {
+        self.model = model
+        music = model.music
+        lofi = model.lofiYouTube
+    }
+
+    var body: some View {
+        Button(action: model.toggleTimerMediaPlayback) {
+            HStack(spacing: 4) {
+                Image(systemName: model.timerMediaUsesLofi ? "play.rectangle.fill" : "music.note")
+                    .font(.system(size: 8, weight: .semibold))
+                    .foregroundStyle(NotchflowTheme.orangeSoft)
+
+                Image(systemName: model.timerMediaIsPlaying ? "pause.fill" : "play.fill")
+                    .font(.system(size: 9, weight: .bold))
+                    .foregroundStyle(Color.white.opacity(0.78))
+            }
+            .frame(width: 38, height: 28)
+            .background {
+                Capsule()
+                    .fill(NotchflowTheme.raised)
+                    .overlay {
+                        Capsule().stroke(NotchflowTheme.border, lineWidth: 1)
+                    }
+            }
+        }
+        .buttonStyle(.plain)
+        .accessibilityLabel(accessibilityLabel)
+        .help(accessibilityLabel)
+    }
+
+    private var accessibilityLabel: String {
+        if model.timerMediaUsesLofi && !model.timerMediaIsPlaying {
+            return "Resume \(model.timerMediaSourceName)"
+        }
+        return "\(model.timerMediaIsPlaying ? "Pause" : "Play") \(model.timerMediaSourceName)"
     }
 }
 
@@ -117,6 +175,8 @@ private struct CoffeeBreakView: View {
                 .foregroundStyle(NotchflowTheme.secondary)
                 .multilineTextAlignment(.trailing)
                 .frame(width: 160)
+
+            TimerMediaButton(model: model)
 
             NotchIconButton(
                 systemName: timer.isRunning ? "pause.fill" : "play.fill",
