@@ -135,11 +135,13 @@ final class PanelCoordinator {
         // The collapsed surface prioritizes timer context on the left and the
         // remaining countdown on the right instead of decorative media icons.
         model.compactWidth = physicalNotch ? 356 : 220
-        model.expandedWidth = min(720, screen.visibleFrame.width - 32)
         let showsLofiPlayer = model.selectedTab == .music
             && model.surface == .main
             && model.musicSource == .lofiGirl
-        model.expandedHeight = showsLofiPlayer ? 310 : 204
+        // The compact Lofi player needs less surrounding panel space while
+        // preserving the original width of its native control column.
+        model.expandedWidth = min(showsLofiPlayer ? 545 : 720, screen.visibleFrame.width - 32)
+        model.expandedHeight = showsLofiPlayer ? 288 : 204
 
         let width = model.isExpanded ? model.expandedWidth : model.compactWidth
         let height = model.isExpanded ? model.expandedHeight : model.compactHeight

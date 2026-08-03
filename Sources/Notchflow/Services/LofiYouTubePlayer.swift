@@ -186,7 +186,7 @@ extension LofiYouTubePlayer {
                   videoId: \(videoID),
                   playerVars: {
                     autoplay: 0,
-                    controls: 1,
+                    controls: 0,
                     enablejsapi: 1,
                     playsinline: 1,
                     origin: 'https://app.notchflow.localclone'

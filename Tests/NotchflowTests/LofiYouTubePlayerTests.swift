@@ -69,4 +69,16 @@ struct LofiYouTubePlayerTests {
         #expect(script.contains("return true;"))
         #expect(script.trimmingCharacters(in: .whitespacesAndNewlines).hasSuffix("})();"))
     }
+
+    @Test @MainActor
+    func compactPlayerUsesHalfTheOriginalAreaWithoutViolatingYouTubeMinimums() {
+        let size = LofiYouTubePlayerView.displaySize
+        let player = LofiYouTubePlayer()
+        let originalArea: CGFloat = 400 * 225
+
+        #expect(size.width * size.height == originalArea / 2)
+        #expect(size.width >= 200)
+        #expect(size.height >= 200)
+        #expect(player.htmlDocument.contains("controls: 0"))
+    }
 }

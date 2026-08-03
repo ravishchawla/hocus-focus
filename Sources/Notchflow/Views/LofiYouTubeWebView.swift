@@ -107,18 +107,21 @@ struct LofiYouTubeWebView: NSViewRepresentable {
 /// accidental undersized notch integration much less likely.
 private final class MinimumSizeYouTubeWebView: WKWebView {
     override var intrinsicContentSize: NSSize {
-        NSSize(width: 320, height: 200)
+        LofiYouTubePlayerView.displaySize
     }
 }
 
 /// Convenience wrapper with the minimum legal player footprint encoded in its
-/// SwiftUI layout. The expanded notch must reserve at least this much room.
+/// SwiftUI layout. Its 45,000-point area is exactly half of the original
+/// 400×225 player while preserving YouTube's 200×200 minimum viewport.
 struct LofiYouTubePlayerView: View {
+    static let displaySize = CGSize(width: 225, height: 200)
+
     @ObservedObject var player: LofiYouTubePlayer
 
     var body: some View {
         LofiYouTubeWebView(player: player)
-            .frame(minWidth: 200, idealWidth: 356, minHeight: 200, idealHeight: 200)
+            .frame(width: Self.displaySize.width, height: Self.displaySize.height)
             .background(.black)
             .accessibilityLabel("YouTube player for \(player.selectedStation.title)")
     }

@@ -118,7 +118,6 @@ struct MusicControlsView: View {
     private var lofiControls: some View {
         HStack(alignment: .top, spacing: 16) {
             LofiYouTubePlayerView(player: lofi)
-                .frame(width: 400, height: 225)
                 .onAppear {
                     // Let the notch finish expanding before autoplay so the
                     // YouTube player is fully visible when playback begins.
