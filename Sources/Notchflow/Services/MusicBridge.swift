@@ -71,6 +71,10 @@ final class MusicBridge: ObservableObject {
         perform(.togglePlayPause)
     }
 
+    func pause() {
+        perform(.pause)
+    }
+
     func previous() {
         perform(.previous)
     }
@@ -124,6 +128,7 @@ extension MusicBridge {
 
     enum ControlCommand {
         case togglePlayPause
+        case pause
         case previous
         case next
         case toggleShuffle
@@ -277,6 +282,8 @@ extension MusicBridge {
         switch command {
         case .togglePlayPause:
             commandSource = "playpause"
+        case .pause:
+            commandSource = "if player state is playing then pause"
         case .previous:
             commandSource = "previous track"
         case .next:

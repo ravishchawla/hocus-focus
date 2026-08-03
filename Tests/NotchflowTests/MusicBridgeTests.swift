@@ -50,6 +50,8 @@ struct MusicBridgeTests {
         let bridge = MusicBridge()
 
         #expect(bridge.controlScript(.togglePlayPause).contains("playpause"))
+        #expect(bridge.controlScript(.pause).contains("if player state is playing then pause"))
+        #expect(!bridge.controlScript(.pause).contains("playpause"))
         #expect(bridge.controlScript(.previous).contains("previous track"))
         #expect(bridge.controlScript(.next).contains("next track"))
         #expect(bridge.controlScript(.setVolume(120)).contains("set sound volume to 100"))

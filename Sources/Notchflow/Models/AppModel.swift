@@ -92,7 +92,10 @@ final class AppModel: ObservableObject {
         static let timerState = "timer.persistedState"
     }
 
-    init(defaults: UserDefaults = .standard) {
+    init(
+        defaults: UserDefaults = .standard,
+        now: @escaping () -> Date = { Date() }
+    ) {
         self.defaults = defaults
 
         let focusSeconds = defaults.integer(forKey: Keys.focusSeconds)
@@ -101,7 +104,8 @@ final class AppModel: ObservableObject {
         timer = FocusTimer(
             focusSeconds: focusSeconds > 0 ? focusSeconds : 25 * 60,
             shortBreakSeconds: breakSeconds > 0 ? breakSeconds : 5 * 60,
-            coffeeSeconds: coffeeSeconds > 0 ? coffeeSeconds : 5 * 60
+            coffeeSeconds: coffeeSeconds > 0 ? coffeeSeconds : 5 * 60,
+            now: now
         )
         timer.autoStartBreaks = defaults.object(forKey: Keys.autoStart) == nil
             ? false
@@ -260,11 +264,23 @@ final class AppModel: ObservableObject {
         music.togglePlayPause()
     }
 
+    private func pauseTimerMediaPlayback() {
+        if musicSource == .lofiGirl && lofiYouTube.hasRetainedPlayer {
+            lofiYouTube.pause()
+        } else {
+            music.pause()
+        }
+    }
+
     func persistTimerState() {
         defaults.set(timer.encodedState(), forKey: Keys.timerState)
     }
 
     private func handleCompletion(of mode: TimerMode) {
+        if mode == .focus {
+            pauseTimerMediaPlayback()
+        }
+
         NSHapticFeedbackManager.defaultPerformer.perform(.alignment, performanceTime: .now)
         guard notificationsEnabled else { return }
 

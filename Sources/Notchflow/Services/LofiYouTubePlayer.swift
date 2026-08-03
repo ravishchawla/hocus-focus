@@ -86,6 +86,8 @@ final class LofiYouTubePlayer: ObservableObject {
         webView != nil && playbackState.hasControllableSession
     }
 
+    var hasRetainedPlayer: Bool { webView != nil }
+
     var isActivelyPlaying: Bool { playbackState.isActivelyPlaying }
 
     func togglePlayPause() {
@@ -132,6 +134,9 @@ final class LofiYouTubePlayer: ObservableObject {
     }
 
     func pause() {
+        if webView != nil {
+            hasAttemptedInitialAutoplay = true
+        }
         evaluate("window.notchflowPlayer.pause();", reportErrors: false)
         if playbackState == .playing || playbackState == .buffering {
             playbackState = .paused

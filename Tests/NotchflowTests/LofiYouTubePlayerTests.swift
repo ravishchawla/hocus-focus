@@ -79,6 +79,22 @@ struct LofiYouTubePlayerTests {
     }
 
     @Test @MainActor
+    func pausingWhileLoadingCancelsDelayedInitialAutoplay() {
+        let player = LofiYouTubePlayer()
+        let webView = WKWebView()
+
+        player.attach(to: webView)
+        #expect(player.playbackState == .loading)
+
+        player.pause()
+        #expect(!player.autoplayOnceIfNeeded())
+
+        player.detach(from: webView)
+        player.attach(to: webView)
+        #expect(!player.autoplayOnceIfNeeded())
+    }
+
+    @Test @MainActor
     func retainedPausedPlayerCanResumeWhileHidden() {
         let player = LofiYouTubePlayer()
         let webView = WKWebView()
