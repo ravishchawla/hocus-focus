@@ -102,6 +102,7 @@ final class PanelCoordinator {
             model.$selectedTab.removeDuplicates().map { _ in () }.eraseToAnyPublisher(),
             model.$surface.removeDuplicates().map { _ in () }.eraseToAnyPublisher(),
             model.$musicSource.removeDuplicates().map { _ in () }.eraseToAnyPublisher(),
+            model.$displayPreference.removeDuplicates().map { _ in () }.eraseToAnyPublisher(),
             NotificationCenter.default.publisher(for: NSApplication.didChangeScreenParametersNotification)
                 .map { _ in () }
                 .prepend(())
@@ -141,7 +142,14 @@ final class PanelCoordinator {
         // The compact Lofi player needs less surrounding panel space while
         // preserving the original width of its native control column.
         model.expandedWidth = min(showsLofiPlayer ? 545 : 720, screen.visibleFrame.width - 32)
-        model.expandedHeight = showsLofiPlayer ? 288 : 204
+        // Settings carries an extra row for the display picker.
+        model.expandedHeight = if showsLofiPlayer {
+            288
+        } else if model.surface == .settings {
+            244
+        } else {
+            204
+        }
 
         let width = model.isExpanded ? model.expandedWidth : model.compactWidth
         let height = model.isExpanded ? model.expandedHeight : model.compactHeight
@@ -167,10 +175,12 @@ final class PanelCoordinator {
     }
 
     private func targetScreen() -> NSScreen? {
-        let mouse = NSEvent.mouseLocation
-        return NSScreen.screens.first(where: { $0.frame.contains(mouse) })
-            ?? activeScreen
-            ?? NSScreen.main
-            ?? NSScreen.screens.first
+        DisplayResolver.screen(
+            for: model.displayPreference,
+            among: NSScreen.screens,
+            mouseLocation: NSEvent.mouseLocation,
+            lastResolved: activeScreen,
+            systemDefault: NSScreen.main
+        )
     }
 }

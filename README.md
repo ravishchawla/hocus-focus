@@ -45,6 +45,7 @@ Hocus Focus is present when it helps and nearly invisible when it does not.
 - **Glanceable by default.** See the current mode and remaining time without opening anything.
 - **Expandable on demand.** Hover or click when you want the full timer or music controls.
 - **Easy to keep around.** Pin the expanded view while planning a session, then collapse it when it is time to work.
+- **Steady on one screen.** Working across several monitors? Pick the display Hocus Focus should stay on in Settings, and it stops following your pointer around.
 - **No Dock clutter.** Hocus Focus lives in the notch, with a small menu-bar fallback when you need it.
 - **Personal by design.** Your preferences stay on your Mac, and there is no Hocus Focus account to create.
 

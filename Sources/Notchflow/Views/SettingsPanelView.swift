@@ -1,3 +1,4 @@
+import AppKit
 import SwiftUI
 
 struct SettingsPanelView: View {
@@ -7,6 +8,7 @@ struct SettingsPanelView: View {
     @State private var focusMinutes = 25
     @State private var breakMinutes = 5
     @State private var coffeeMinutes = 5
+    @State private var displayOptions: [DisplayOption] = []
 
     init(model: AppModel) {
         self.model = model
@@ -48,6 +50,10 @@ struct SettingsPanelView: View {
                 Toggle("Completion notifications", isOn: $model.notificationsEnabled)
                 Toggle("Simulate notch", isOn: $model.simulateNotch)
                 Toggle("Launch at login", isOn: $model.launchAtLogin)
+
+                Divider().overlay(Color.white.opacity(0.08))
+
+                displaySection
             }
             .font(.system(size: 10, weight: .medium))
             .toggleStyle(.switch)
@@ -61,7 +67,66 @@ struct SettingsPanelView: View {
             focusMinutes = max(1, timer.focusSeconds / 60)
             breakMinutes = max(1, timer.shortBreakSeconds / 60)
             coffeeMinutes = max(1, timer.coffeeSeconds / 60)
+            refreshDisplayOptions()
         }
+        .onReceive(
+            NotificationCenter.default.publisher(
+                for: NSApplication.didChangeScreenParametersNotification
+            )
+        ) { _ in
+            refreshDisplayOptions()
+        }
+    }
+
+    private var displaySection: some View {
+        VStack(alignment: .leading, spacing: 5) {
+            Label("Show on display", systemImage: "display")
+                .font(.system(size: 11, weight: .bold))
+
+            Picker("Show on display", selection: displaySelection) {
+                Text("Follow the mouse").tag(DisplayPreference.followMouse)
+                ForEach(displayOptions) { option in
+                    Text(option.menuTitle)
+                        .tag(DisplayPreference.pinned(displayID: option.id))
+                }
+            }
+            .labelsHidden()
+            .pickerStyle(.menu)
+            .controlSize(.small)
+            .font(.system(size: 10, weight: .medium))
+            .accessibilityLabel("Display the notch stays on")
+        }
+    }
+
+    /// Captures the chosen display's name alongside its identifier so the menu
+    /// can still name it after that monitor is unplugged.
+    private var displaySelection: Binding<DisplayPreference> {
+        Binding(
+            get: { model.displayPreference },
+            set: { preference in
+                let name = preference.pinnedDisplayID.flatMap { id in
+                    displayOptions.first(where: { $0.id == id })?.name
+                }
+                model.selectDisplay(preference, name: name ?? model.pinnedDisplayName)
+            }
+        )
+    }
+
+    private func refreshDisplayOptions() {
+        var options = DisplayOption.connected()
+        // Keep a pinned-but-unplugged display listed, otherwise the picker
+        // renders blank and the saved choice looks lost.
+        if let pinnedID = model.displayPreference.pinnedDisplayID,
+           !options.contains(where: { $0.id == pinnedID }) {
+            options.append(
+                DisplayOption(
+                    id: pinnedID,
+                    name: model.pinnedDisplayName ?? "Saved display",
+                    isConnected: false
+                )
+            )
+        }
+        displayOptions = options
     }
 
     private func durationRow(_ title: String, value: Binding<Int>, range: ClosedRange<Int>) -> some View {

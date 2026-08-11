@@ -74,6 +74,24 @@ final class AppModel: ObservableObject {
             applyMusicSource()
         }
     }
+    @Published var displayPreference: DisplayPreference {
+        didSet {
+            guard displayPreference != oldValue else { return }
+            defaults.set(displayPreference.storageValue, forKey: Keys.displayPreference)
+        }
+    }
+    /// Remembered only so Settings can name a pinned display that is currently
+    /// unplugged. The panel always matches on `displayPreference`.
+    @Published var pinnedDisplayName: String? {
+        didSet {
+            guard pinnedDisplayName != oldValue else { return }
+            if let pinnedDisplayName {
+                defaults.set(pinnedDisplayName, forKey: Keys.pinnedDisplayName)
+            } else {
+                defaults.removeObject(forKey: Keys.pinnedDisplayName)
+            }
+        }
+    }
 
     private let defaults: UserDefaults
     private var collapseWorkItem: DispatchWorkItem?
@@ -90,6 +108,8 @@ final class AppModel: ObservableObject {
         static let launchAtLogin = "app.launchAtLogin"
         static let notificationsEnabled = "app.notificationsEnabled"
         static let timerState = "timer.persistedState"
+        static let displayPreference = "panel.displayPreference"
+        static let pinnedDisplayName = "panel.pinnedDisplayName"
     }
 
     init(
@@ -129,6 +149,10 @@ final class AppModel: ObservableObject {
         collapseDelay = defaults.object(forKey: Keys.collapseDelay) == nil
             ? 0.75
             : defaults.double(forKey: Keys.collapseDelay)
+        displayPreference = DisplayPreference(
+            storageValue: defaults.string(forKey: Keys.displayPreference)
+        )
+        pinnedDisplayName = defaults.string(forKey: Keys.pinnedDisplayName)
         launchAtLogin = defaults.bool(forKey: Keys.launchAtLogin)
         notificationsEnabled = defaults.object(forKey: Keys.notificationsEnabled) == nil
             ? true
@@ -158,6 +182,13 @@ final class AppModel: ObservableObject {
         defaults.set(focus, forKey: Keys.focusSeconds)
         defaults.set(shortBreak, forKey: Keys.breakSeconds)
         defaults.set(coffee, forKey: Keys.coffeeSeconds)
+    }
+
+    /// Stores both halves of the choice: the stable identifier the panel matches
+    /// on, and the display's name for the Settings menu.
+    func selectDisplay(_ preference: DisplayPreference, name: String?) {
+        pinnedDisplayName = preference == .followMouse ? nil : name
+        displayPreference = preference
     }
 
     func expand(pin: Bool = false) {
