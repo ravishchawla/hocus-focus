@@ -8,9 +8,15 @@ struct LofiYouTubePlayerTests {
     func catalogUsesRequestedMainStreamByDefault() throws {
         let station = try #require([LofiStation].lofiGirlLiveStations.first)
 
-        #expect(station.videoID == LofiYouTubePlayer.defaultVideoID)
+        #expect(station.slug == LofiYouTubePlayer.defaultSlug)
         #expect(station.videoID == "rFZHOHl-L8A")
         #expect([LofiStation].lofiGirlLiveStations.count == 8)
+        // Slugs are the persisted identity, so duplicates would silently merge
+        // two stations into one saved selection.
+        let slugs = [LofiStation].lofiGirlLiveStations.map(\.slug)
+        #expect(Set(slugs).count == slugs.count)
+        // Every catalog entry must stay re-resolvable.
+        #expect([LofiStation].lofiGirlLiveStations.allSatisfy { !$0.matchPhrases.isEmpty })
     }
 
     @Test

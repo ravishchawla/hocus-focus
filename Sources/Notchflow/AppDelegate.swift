@@ -11,6 +11,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         panelCoordinator = PanelCoordinator(model: model)
         panelCoordinator?.show()
         configureStatusItem()
+        model.lofiYouTube.refreshStations()
 
         NSWorkspace.shared.notificationCenter.addObserver(
             self,

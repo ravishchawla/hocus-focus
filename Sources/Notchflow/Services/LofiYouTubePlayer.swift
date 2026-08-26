@@ -35,7 +35,12 @@ enum LofiPlaybackState: Equatable {
 /// the official YouTube embed and its audio continue uninterrupted.
 @MainActor
 final class LofiYouTubePlayer: ObservableObject {
-    static let defaultVideoID = "rFZHOHl-L8A"
+    static let defaultSlug = "lofi-hip-hop"
+
+    /// How long a resolved set of broadcast IDs is trusted before the channel
+    /// is consulted again. Streams run for months, so this only needs to be
+    /// short enough to repair a dead station within a session or two.
+    static let resolutionLifetime: TimeInterval = 6 * 60 * 60
 
     @Published private(set) var stations: [LofiStation]
     @Published private(set) var selectedStation: LofiStation
@@ -47,28 +52,49 @@ final class LofiYouTubePlayer: ObservableObject {
 
     private enum Keys {
         static let selectedVideoID = "youtube.lofi.selectedVideoID"
+        static let selectedSlug = "youtube.lofi.selectedSlug"
         static let volume = "youtube.lofi.volume"
+        static let resolvedVideoIDs = "youtube.lofi.resolvedVideoIDs"
+        static let resolvedAt = "youtube.lofi.resolvedAt"
     }
 
     private let defaults: UserDefaults
+    private let directory: LofiStreamDirectory
+    private let now: () -> Date
+    private var refreshTask: Task<Void, Never>?
     private var hasAttemptedInitialAutoplay = false
     private(set) var webView: WKWebView?
 
     init(
         stations: [LofiStation] = .lofiGirlLiveStations,
-        defaults: UserDefaults = .standard
+        defaults: UserDefaults = .standard,
+        directory: LofiStreamDirectory = LofiStreamDirectory(),
+        now: @escaping () -> Date = { Date() }
     ) {
         let uniqueStations = stations.reduce(into: [LofiStation]()) { result, station in
-            guard !result.contains(where: { $0.videoID == station.videoID }) else { return }
+            guard !result.contains(where: { $0.slug == station.slug }) else { return }
             result.append(station)
         }
-        let catalog = uniqueStations.isEmpty ? .lofiGirlLiveStations : uniqueStations
+        let bundled = uniqueStations.isEmpty ? .lofiGirlLiveStations : uniqueStations
+        // Broadcast IDs resolved on an earlier run are applied before anything
+        // is shown, so a repaired station survives a relaunch and works offline.
+        let cached = defaults.dictionary(forKey: Keys.resolvedVideoIDs) as? [String: String] ?? [:]
+        let catalog = bundled.map { station in
+            cached[station.slug].map { station.withVideoID($0) } ?? station
+        }
         self.stations = catalog
         self.defaults = defaults
+        self.directory = directory
+        self.now = now
 
-        let persistedID = defaults.string(forKey: Keys.selectedVideoID)
-        selectedStation = catalog.first(where: { $0.videoID == persistedID })
-            ?? catalog.first(where: { $0.videoID == Self.defaultVideoID })
+        // Selections used to be stored as a video ID. Migrate one to its slug
+        // so an upgrade past a rotation does not silently reset the station.
+        let persistedSlug = defaults.string(forKey: Keys.selectedSlug)
+            ?? defaults.string(forKey: Keys.selectedVideoID).flatMap { videoID in
+                bundled.first(where: { $0.videoID == videoID })?.slug
+            }
+        selectedStation = catalog.first(where: { $0.slug == persistedSlug })
+            ?? catalog.first(where: { $0.slug == Self.defaultSlug })
             ?? catalog[0]
 
         if let persistedVolume = defaults.object(forKey: Keys.volume) as? NSNumber {
@@ -145,8 +171,8 @@ final class LofiYouTubePlayer: ObservableObject {
 
     func select(_ station: LofiStation, autoplay: Bool = true) {
         guard stations.contains(station), station != selectedStation else { return }
-        selectedStation = station
-        defaults.set(station.videoID, forKey: Keys.selectedVideoID)
+        selectedStation = stations.first(where: { $0.slug == station.slug }) ?? station
+        defaults.set(station.slug, forKey: Keys.selectedSlug)
         lastError = nil
 
         guard isPlayerVisible else {
@@ -156,7 +182,7 @@ final class LofiYouTubePlayer: ObservableObject {
 
         if autoplay { hasAttemptedInitialAutoplay = true }
         playbackState = .loading
-        let videoID = Self.javaScriptString(station.videoID)
+        let videoID = Self.javaScriptString(selectedStation.videoID)
         evaluate("window.notchflowPlayer.load(\(videoID), \(autoplay));")
     }
 
@@ -180,7 +206,83 @@ final class LofiYouTubePlayer: ObservableObject {
         evaluate(isMuted ? "window.notchflowPlayer.mute();" : "window.notchflowPlayer.unmute();")
     }
 
+    /// Brings the catalog in line with what Lofi Girl is broadcasting now.
+    ///
+    /// Safe to call on every launch: it is a no-op while a previous resolution
+    /// is still fresh, it never blocks the caller, and any failure leaves the
+    /// existing IDs untouched.
+    func refreshStations(force: Bool = false) {
+        guard force || needsResolution else { return }
+        guard refreshTask == nil else { return }
+
+        refreshTask = Task { [weak self] in
+            await self?.refreshStationsNow(force: force)
+            self?.refreshTask = nil
+        }
+    }
+
+    /// The awaitable half of ``refreshStations(force:)``.
+    func refreshStationsNow(force: Bool = false) async {
+        guard force || needsResolution else { return }
+        let resolved = await directory.resolveVideoIDs(for: stations)
+        guard !Task.isCancelled else { return }
+        applyResolvedVideoIDs(resolved)
+    }
+
+    private var needsResolution: Bool {
+        guard defaults.dictionary(forKey: Keys.resolvedVideoIDs) != nil else { return true }
+        let resolvedAt = defaults.double(forKey: Keys.resolvedAt)
+        guard resolvedAt > 0 else { return true }
+        let age = now().timeIntervalSince1970 - resolvedAt
+        // A clock that moved backwards should retry rather than trust the cache.
+        return age < 0 || age >= Self.resolutionLifetime
+    }
+
+    func applyResolvedVideoIDs(_ resolved: [String: String]) {
+        guard !resolved.isEmpty else { return }
+
+        // Merge rather than replace. A later sweep that recognises fewer shows
+        // must not discard a good address and drop that station back to the
+        // build-time ID, which is by definition older.
+        var cache = defaults.dictionary(forKey: Keys.resolvedVideoIDs) as? [String: String] ?? [:]
+        cache.merge(resolved) { _, fresh in fresh }
+        defaults.set(cache, forKey: Keys.resolvedVideoIDs)
+        defaults.set(now().timeIntervalSince1970, forKey: Keys.resolvedAt)
+
+        let previousVideoID = selectedStation.videoID
+        stations = stations.map { station in
+            resolved[station.slug].map { station.withVideoID($0) } ?? station
+        }
+        guard let current = stations.first(where: { $0.slug == selectedStation.slug }) else { return }
+        selectedStation = current
+
+        guard current.videoID != previousVideoID else { return }
+        // Audio that is still running proves the old broadcast is alive, so it
+        // is left alone; only a dead or idle player is moved to the new one.
+        switch playbackState {
+        case .playing, .buffering, .paused:
+            return
+        case .idle, .loading, .ready, .ended, .failed:
+            lastError = nil
+            guard isPlayerVisible else {
+                playbackState = .idle
+                return
+            }
+            playbackState = .loading
+            let videoID = Self.javaScriptString(current.videoID)
+            evaluate("window.notchflowPlayer.load(\(videoID), false);")
+        }
+    }
+
+    /// Codes YouTube reports when a video ID no longer names a playable stream.
+    static func indicatesRetiredBroadcast(_ code: Int?) -> Bool {
+        guard let code else { return false }
+        return [100, 101, 150].contains(code)
+    }
+
     func shutdown() {
+        refreshTask?.cancel()
+        refreshTask = nil
         pause()
         webView?.stopLoading()
         webView?.configuration.userContentController.removeScriptMessageHandler(
@@ -308,6 +410,9 @@ extension LofiYouTubePlayer {
             let code = (message["value"] as? NSNumber)?.intValue
             playbackState = .failed
             lastError = Self.errorMessage(for: code)
+            // A station that has gone dark is the one case worth spending a
+            // network round trip on immediately.
+            if Self.indicatesRetiredBroadcast(code) { refreshStations(force: true) }
         case "autoplayBlocked":
             playbackState = .ready
             lastError = "YouTube blocked autoplay. Press Play to start this station."

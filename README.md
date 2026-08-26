@@ -21,6 +21,7 @@ Some days call for Lofi Girl. Others need a familiar playlist. Hocus Focus keeps
 - Tune into eight Lofi Girl live stations, from classic study beats to synthwave, piano, jazz, and rainy-day moods.
 - Control Apple Music without pulling yourself into the full Music app.
 - Keep listening while the notch collapses or you switch back to the timer.
+- Stations keep working. Lofi Girl ends a broadcast and starts a fresh one every few months; Hocus Focus finds the current one for you instead of going dark until the next update.
 
 ### A Lofi Girl station for every kind of session
 

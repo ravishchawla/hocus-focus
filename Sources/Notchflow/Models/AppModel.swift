@@ -250,6 +250,8 @@ final class AppModel: ObservableObject {
     func applicationDidWake() {
         timer.refresh()
         if musicSource != .lofiGirl { music.refresh() }
+        // A Mac asleep for days may wake to a station that has since ended.
+        lofiYouTube.refreshStations()
     }
 
     func musicSurfaceDidAppear() {
