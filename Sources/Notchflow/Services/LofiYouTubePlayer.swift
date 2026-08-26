@@ -35,7 +35,7 @@ enum LofiPlaybackState: Equatable {
 /// the official YouTube embed and its audio continue uninterrupted.
 @MainActor
 final class LofiYouTubePlayer: ObservableObject {
-    static let defaultVideoID = "X4VbdwhkE10"
+    static let defaultVideoID = "rFZHOHl-L8A"
 
     @Published private(set) var stations: [LofiStation]
     @Published private(set) var selectedStation: LofiStation

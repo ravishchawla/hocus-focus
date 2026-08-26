@@ -76,7 +76,7 @@ extension Array where Element == LofiStation {
     /// livestream IDs, so callers can inject a replacement catalog at init time.
     static let lofiGirlLiveStations: [LofiStation] = [
         LofiStation(
-            videoID: "X4VbdwhkE10",
+            videoID: "rFZHOHl-L8A",
             title: "Lofi hip hop radio",
             subtitle: "Beats to relax/study to",
             systemImage: "book.fill"

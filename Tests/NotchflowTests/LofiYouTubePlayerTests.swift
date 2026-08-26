@@ -9,20 +9,20 @@ struct LofiYouTubePlayerTests {
         let station = try #require([LofiStation].lofiGirlLiveStations.first)
 
         #expect(station.videoID == LofiYouTubePlayer.defaultVideoID)
-        #expect(station.videoID == "X4VbdwhkE10")
+        #expect(station.videoID == "rFZHOHl-L8A")
         #expect([LofiStation].lofiGirlLiveStations.count == 8)
     }
 
     @Test
     func parsesSupportedYouTubeLinkShapes() throws {
-        let watch = try #require(URL(string: "https://www.youtube.com/watch?v=X4VbdwhkE10"))
-        let short = try #require(URL(string: "https://youtu.be/X4VbdwhkE10"))
-        let live = try #require(URL(string: "https://www.youtube.com/live/X4VbdwhkE10"))
-        let unrelated = try #require(URL(string: "https://example.com/watch?v=X4VbdwhkE10"))
+        let watch = try #require(URL(string: "https://www.youtube.com/watch?v=aaaaBBBB_-1"))
+        let short = try #require(URL(string: "https://youtu.be/aaaaBBBB_-1"))
+        let live = try #require(URL(string: "https://www.youtube.com/live/aaaaBBBB_-1"))
+        let unrelated = try #require(URL(string: "https://example.com/watch?v=aaaaBBBB_-1"))
 
-        #expect(LofiStation.from(youtubeURL: watch)?.videoID == "X4VbdwhkE10")
-        #expect(LofiStation.from(youtubeURL: short)?.videoID == "X4VbdwhkE10")
-        #expect(LofiStation.from(youtubeURL: live)?.videoID == "X4VbdwhkE10")
+        #expect(LofiStation.from(youtubeURL: watch)?.videoID == "aaaaBBBB_-1")
+        #expect(LofiStation.from(youtubeURL: short)?.videoID == "aaaaBBBB_-1")
+        #expect(LofiStation.from(youtubeURL: live)?.videoID == "aaaaBBBB_-1")
         #expect(LofiStation.from(youtubeURL: unrelated) == nil)
     }
 
