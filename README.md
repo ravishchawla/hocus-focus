@@ -8,6 +8,9 @@ Hocus Focus turns the small space you already glance at all day into a calm home
   <img src="docs/images/compact-notch-menubar.png" alt="Hocus Focus collapsed into the MacBook notch alongside the macOS menu bar" width="100%">
 </p>
 
+<img width="1476" height="287" alt="Screenshot 2026-09-25 at 10 46 49 AM" src="https://github.com/user-attachments/assets/f4aa651c-829b-43fd-9221-6b485315ed40" />
+
+
 ## Focus without leaving your flow
 
 Your current session is always one glance away. Hocus Focus stays beautifully compact when you are working, then expands when you need controls. Start, pause, reset, skip ahead, or take a coffee break without hunting through menus.
