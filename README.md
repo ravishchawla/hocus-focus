@@ -58,9 +58,27 @@ Focus is not one perfect 25-minute block. It is starting when you feel resistanc
 
 Hocus Focus is a personal macOS app for Apple silicon Macs running macOS 14 or later.
 
+### Download a release
+
+1. Download `Hocus-Focus-<version>.zip` from the [Releases page](https://github.com/ravishchawla/hocus-focus/releases).
+2. Unzip it and move `Hocus Focus.app` into your Applications folder.
+3. Open the app once. macOS will say it could not verify the app, because it is not notarized. Go to **System Settings > Privacy & Security**, scroll down to the security section, and click **Open Anyway**.
+
+If you would rather skip that dialog, clear the quarantine flag from the Terminal instead:
+
+```bash
+xattr -d com.apple.quarantine "/Applications/Hocus Focus.app"
+```
+
+Hocus Focus has no Dock icon. Once it is running, look for it in the notch or the menu bar.
+
+### Build from source
+
 ```bash
 ./scripts/build-app.sh
 open "dist/Hocus Focus.app"
 ```
+
+The script builds the app into `dist/` and packages it as `dist/Hocus-Focus-<version>.zip` with `ditto`, which keeps the executable's permissions intact. Archives made by other tools can drop the execute bit, and the extracted app then fails to launch. To sign with a Developer ID certificate, set `CODESIGN_IDENTITY` before running the script.
 
 The first time you use certain features, macOS may ask for permission to send timer notifications or control Apple Music. Lofi Girl playback uses YouTube's embedded player and needs an internet connection.
